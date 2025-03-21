@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Background Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Header Section -->
+    <header class="header">
+        <h1 class="animated-title">Breast Cancer Detection</h1>
+        <p class="animated-subtitle">AI-powered analysis to detect early signs of breast cancer.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="box">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2>Upload an Image</h2>
+                <form method="post" action="/predict" enctype="multipart/form-data" id="uploadForm">
+                    <!-- File Input -->
+                    <input type="file" name="file" accept="image/*" id="fileInput" required onchange="previewImage(event)">
+                    <label for="fileInput" class="file-label">Choose File</label>
+                    <!-- Submit Button -->
+                    <button type="submit" class="submit-btn">Analyze</button>
+                </form>
+
+                <!-- Image Preview -->
+                <div class="preview-container">
+                    <img id="previewImage" class="preview-img hidden" alt="Uploaded Image Preview">
+                </div>
+            </div>
+
+            <!-- Result Section -->
+            <div class="result-section">
+                {% if prediction %}
+                    <h2>Prediction Result:</h2>
+                    <p class="result">{{ prediction }}</p>
+                    {% if image_path %}
+                        <img src="{{ url_for('static', filename=image_path) }}" alt="Result Image" class="result-img">
+                    {% endif %}
+                {% else %}
+                    <p>No image uploaded yet. Please upload an image to analyze.</p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <p>&copy; 2025 Breast Cancer Detection. Built with precision and care.</p>
+    </footer>
+
+    <!-- JavaScript for Image Preview -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        // GSAP Animation for Header
+        gsap.from(".animated-title", { opacity: 0, y: -50, duration: 1 });
+        gsap.from(".animated-subtitle", { opacity: 0, y: 50, duration: 1.5 });
+
+        // Function to Preview Uploaded Image
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('previewImage');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>
+
+
