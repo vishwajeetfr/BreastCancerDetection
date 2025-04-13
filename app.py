@@ -103,6 +103,10 @@ def analyze_prediction(prediction):
 def home():
     return render_template("index.html")
 
+# About Page
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
 # Prediction Route
 @app.route("/predict", methods=["POST"])
