@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breast Cancer Detection</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="background-overlay"></div>
+
+    <main class="container">
+      <div class="glass-container">
+        <div class="glow-border"></div>
+
+        <h1>Breast Cancer Detection</h1>
+        <p class="subtitle">Early detection saves lives</p>
+
+        <form id="uploadForm">
+          <div class="upload-container" id="dropZone">
+            <div class="upload-area">
+              <input
+                type="file"
+                id="fileInput"
+                name="file"
+                accept="image/*"
+                hidden
+              />
+              <div class="upload-content">
+                <div class="upload-icon">
+                  <svg
+                    width="50"
+                    height="50"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </div>
+                <p>Drag & Drop your image here or</p>
+                <button
+                  type="button"
+                  class="upload-btn"
+                  onclick="document.getElementById('fileInput').click()"
+                >
+                  Choose File
+                </button>
+              </div>
+            </div>
+
+            <div class="preview-container" hidden>
+              <img id="imagePreview" src="" alt="Preview" />
+              <button type="button" class="remove-btn" onclick="removeImage()">
+                ×
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="analyze-btn" disabled>
+            <span class="btn-text">Analyze Image</span>
+            <div class="btn-loader" hidden></div>
+          </button>
+        </form>
+
+        <div class="result-container" id="resultContainer" hidden>
+          <h2>Analysis Result</h2>
+          <p class="prediction" id="predictionResult"></p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const previewContainer = document.querySelector(".preview-container");
+      const imagePreview = document.getElementById("imagePreview");
+      const analyzeBtn = document.querySelector(".analyze-btn");
+      const form = document.getElementById("uploadForm");
+      const resultContainer = document.getElementById("resultContainer");
+      const predictionResult = document.getElementById("predictionResult");
+
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragging");
+      });
+
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragging");
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragging");
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+          handleImage(file);
+        }
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          handleImage(file);
+        }
+      });
+
+      function handleImage(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          imagePreview.src = e.target.result;
+          previewContainer.hidden = false;
+          document.querySelector(".upload-content").style.display = "none";
+          analyzeBtn.disabled = false;
+          resultContainer.hidden = true;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function removeImage() {
+        fileInput.value = "";
+        previewContainer.hidden = true;
+        document.querySelector(".upload-content").style.display = "flex";
+        analyzeBtn.disabled = true;
+        resultContainer.hidden = true;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btnText = document.querySelector(".btn-text");
+        const btnLoader = document.querySelector(".btn-loader");
+        btnText.style.visibility = "hidden";
+        btnLoader.hidden = false;
+        analyzeBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        try {
+          const response = await fetch("/predict", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+          resultContainer.hidden = false;
+          predictionResult.textContent = data.prediction;
+        } catch (error) {
+          resultContainer.hidden = false;
+          predictionResult.textContent =
+            "Error analyzing image. Please try again.";
+        } finally {
+          btnText.style.visibility = "visible";
+          btnLoader.hidden = true;
+          analyzeBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
